@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -22,10 +21,7 @@ namespace RoslynCSharpCallGraph.Walker
                 if (node is MethodDeclarationSyntax methodDeclarationNode)
                 {
                     var methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclarationNode);
-                    // Console.WriteLine("methodSymbol " + methodSymbol.ToDisplayParts());
-                    // Console.WriteLine("Caller Method {0}", methodDeclarationNode.Identifier);
                     return methodSymbol.ToDisplayString();
-
                 }
 
                 node = node.Parent;
