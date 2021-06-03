@@ -12,26 +12,32 @@ namespace RoslynCSharpCallGraph
     {
         static void Main()
         {
+            // workspaceの構築
             var projectName = "TestProject";
             var assemblyName = "TestProject";
+            var files = new List<string> { @"HelloWorld/A.cs", @"HelloWorld/B.cs" };
+
             var projectId = ProjectId.CreateNewId(projectName);
 
-            var files = new List<string> { @"HelloWorld/A.cs", @"HelloWorld/B.cs" };
-            var documentInfos = new List<DocumentInfo>();
+            var metadataReferences = new List<MetadataReference> {
+                MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(Console).Assembly.Location)
+            };
 
+            var documentInfos = new List<DocumentInfo>();
             foreach (var file in files)
             {
                 var debugName = file;
-                var documentName = file;
                 var documentId = DocumentId.CreateNewId(projectId, debugName);
 
                 var source = File.ReadAllText(file);
 
-                VersionStamp version = VersionStamp.Create();
-                var textAndVersion = TextAndVersion.Create(SourceText.From(source), version, documentName);
-                TextLoader loader = TextLoader.From(textAndVersion);
-                string filePath = file;
+                var version = VersionStamp.Create();
+                var textAndVersion = TextAndVersion.Create(SourceText.From(source), version);
+                var loader = TextLoader.From(textAndVersion);
+                var filePath = file;
 
+                var documentName = file;
                 var documentInfo = DocumentInfo.Create(
                     documentId,
                     documentName,
@@ -43,20 +49,14 @@ namespace RoslynCSharpCallGraph
                 documentInfos.Add(documentInfo);
             }
 
-            // 可能なら MSBuildWorkspace を使うのが楽そう
             var workspace = new AdhocWorkspace();
-
-            var metadataReferences = new List<MetadataReference> {
-                MetadataReference.CreateFromFile(typeof(string).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Console).Assembly.Location)
-            };
 
             var solution = workspace.CurrentSolution
                 .AddProject(projectId, projectName, assemblyName, LanguageNames.CSharp)
                 .AddMetadataReferences(projectId, metadataReferences)
                 .AddDocuments(documentInfos.ToImmutableArray());
 
+            // 各Documentを解析してgraphvizを出力
             Console.WriteLine("digraph graph_name {");
             Console.WriteLine("\tgraph [ rankdir = LR ];");
 

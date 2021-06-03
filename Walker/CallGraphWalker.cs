@@ -45,5 +45,4 @@ namespace RoslynCSharpCallGraph.Walker
             base.VisitInvocationExpression(node);
         }
     }
-
 }
